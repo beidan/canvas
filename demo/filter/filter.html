@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+
+
+	<style>
+		.choice {
+			position: absolute;
+			left: 50%;
+			transform: translate(-50%, 0);
+		}
+
+		.choice input {
+			width: 100px;
+			height: 45px;
+			line-height: 45px;
+			font-size: 30px;
+			text-align: center;
+		}
+
+		#canvas {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}</style>
+</head>
+<body>
+<div class="choice">
+	<input type="button" id="restoreButton" value="清空"/>
+	<input type="button" id="negativeButton" value="负片滤镜"/>
+	<input type="button" id="noColorButton" value="黑白滤镜"/>
+	<input type="button" id="embossingButton" value="浮雕滤镜"/>
+	<input type="button" id="sunGlassButton" value="变暗"/>
+	<input type="button" id="grayButton" value="灰度图片"/>
+
+</div>
+<canvas id="canvas" width="800" height="600">对不起你的浏览器不支持canvas</canvas>
+
+<script>
+	window.onload = function () {
+		canvas = document.getElementById("canvas");
+		context = canvas.getContext("2d");
+		var image = new Image(),
+			negativeButton = document.getElementById("negativeButton"),
+			noColorButton = document.getElementById("noColorButton"),
+			restoreButton = document.getElementById("restoreButton"),
+			embossingButton = document.getElementById("embossingButton"),
+			grayButton = document.getElementById("grayButton"),
+			sunGlassButton = document.getElementById("sunGlassButton");
+
+		restoreButton.onclick = function () {
+			context.drawImage(image, 0, 0, image.width, image.height, 0, 0, context.canvas.width, context.canvas.height);
+		};
+
+		noColorButton.onclick = function () {
+			var imageData = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
+			var data = imageData.data;
+			var i;
+			var average;
+
+			for (i = 0; i <= data.length - 4; i += 4) {
+				average = (data[i] + data[i + 1] + data[i + 2]) / 3;
+
+				(average >= 128) && (average = 255);
+				(average < 128) && (average = 0);
+
+				data[i] = average;
+				data[i + 1] = average;
+				data[i + 2] = average;
+			}
+			context.putImageData(imageData, 0, 0);
+		};
+
+		grayButton.onclick = function () {
+			var imageData = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
+			var data = imageData.data;
+			var i;
+			var average;
+
+			for (i = 0; i <= data.length - 4; i += 4) {
+				average = data[i] * .299 + data[i + 1] * .587 + data[i + 2] * .114;
+				data[i] = average;
+				data[i + 1] = average;
+				data[i + 2] = average;
+			}
+			context.putImageData(imageData, 0, 0);
+		};
+
+		negativeButton.onclick = function () {
+			var imageData = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
+			var data = imageData.data;
+			var i;
+
+			for (i = 0; i <= data.length - 4; i += 4) {
+				data[i] = 255 - data[i];
+				data[i + 1] = 255 - data[i + 1];
+				data[i + 2] = 255 - data[i + 2];
+			}
+			context.putImageData(imageData, 0, 0);
+		};
+
+		embossingButton.onclick = function () {
+			var imageData = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
+			var data = imageData.data;
+			var width = imageData.width;
+			var length = data.length;
+			var i;
+
+			for (i = 0; i < length; i++) {
+				if (i <= length - width * 4) {
+					//跳过Alpha属性
+					if ((i + 1) % 4 !== 0) {
+						//判断是否在每行的最后一个像素
+						if ((i + 4) % (width * 4) == 0) {
+							data[i] = data[i - 4];
+							data[i + 1] = data[i - 3];
+							data[i + 2] = data[i - 2];
+							data[i + 3] = data[i - 1];
+							i += 4;
+						}
+						else {
+							data[i] = 255 / 2 + 2 * data[i] - data[i + 4] - data[i + width * 4];
+						}
+					}
+				} else {
+					//最后一行的情况
+					if ((i + 1) % 4 !== 0) {
+						data[i] = data[i - width * 4];
+					}
+				}
+			}
+
+			context.putImageData(imageData, 0, 0);
+		};
+
+		sunGlassButton.onclick = function () {
+			var imageData = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
+			var data = imageData.data;
+			var width = imageData.width;
+			var i;
+
+			for (i = 0; i <= data.length; ++i) {
+				//跳过Alpha属性
+				if ((i + 1) % 4 != 0) {
+					if ((i + 4) % (width * 4) == 0) {
+						data[i] = data[i - 4];
+						data[i + 1] = data[i - 3];
+						data[i + 2] = data[i - 2];
+						data[i + 1] = data[i - 1];
+						i += 4;
+					}
+					else {
+						data[i] = 2 * data[i] - 1.5 * data[i + 4];
+					}
+				}
+			}
+			context.putImageData(imageData, 0, 0);
+		};
+
+		image.src = "timg.jpg";
+		image.onload = function () {
+			context.drawImage(image, 0, 0, image.width, image.height, 0, 0, context.canvas.width, context.canvas.height);
+		}
+	};
+
+
+	var canvas = document.getElementById("canvas"),
+		context = canvas.getContext("2d"),
+		image = new Image();
+	image.src = "timg.jpg";
+	image.onload = function () {
+		context.drawImage(image, 0, 0, image.width, image.height, 0, 0, context.canvas.width, context.canvas.height);
+	}
+
+
+</script>
+</body>
+</html>

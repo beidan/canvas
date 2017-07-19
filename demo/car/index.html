@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>主页</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no">
+	<meta name="format-detection" content="telephone=no">
+	<meta http-equiv="x-dns-prefetch-control" content="on">
+	<link href="index.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div class="wrapper">
+	<!-- S 游戏页面 -->
+	<!-- S 倒计时 -->
+	<div class="car_time">剩余时间<i id="J_car_time">20秒</i></div>
+	<!-- E 倒计时 -->
+
+	<canvas id="gameView" width="750" height="2688" class="car_gameView">
+		您的浏览器版本过低，请更换更高版本的浏览器
+	</canvas>
+
+	<!-- S 选择角色 -->
+	<div class="car_alert" id="J_car_chose_wrap">
+		<div class="car_alert_wrap">
+			<div class="car_chose_tit">
+				选择角色，进入PK
+			</div>
+			<i class="car_alert_close" id="J_car_chos_close"></i>
+			<div class="car_chose_item" id="J_car_role_chose">
+				<div class="car_chose_role" data-name="1">
+					<div class="car_chose_role_name" data-name="1">刘备</div>
+					<div class="car_chose_role_des" data-name="1">力量迅猛，横冲直撞</div>
+				</div>
+				<div class="car_chose_role" data-name="2">
+					<div class="car_chose_role_name" data-name="2">关羽</div>
+					<div class="car_chose_role_des" data-name="2">力量迅猛，横冲直撞</div>
+				</div>
+				<div class="car_chose_role" data-name="3">
+					<div class="car_chose_role_name" data-name="3">张飞</div>
+					<div class="car_chose_role_des" data-name="3">力量迅猛，横冲直撞</div>
+				</div>
+			</div>
+			<div class="car_alert_btn" id="J_car_role_Rchose">
+				随机挑一个
+			</div>
+		</div>
+	</div>
+	<!-- E 选择角色 -->
+
+	<!-- S 游戏指引 -->
+	<div class="car_alert hide" id="J_car_guide_countdown">
+		<!--倒计时-->
+		<div class="car_guide_countdown" id="J_car_guide_num">
+			3
+		</div>
+
+		<!--手势指引-->
+		<div class="car_guide_hand">
+			<div class="car_guide_hand_icon"></div>
+		</div>
+	</div>
+	<!-- E 游戏指引 -->
+
+	<!--S 挑战失败 -->
+	<div class="car_alert hide" id="J_car_lose">
+		<div class="car_alert_wrap">
+			<i class="car_alert_close"></i>
+			<div class="car_alert_content">
+				恭喜你行驶<i>2100</i>米！<br/>
+				再接再厉～
+			</div>
+			<div class="car_alert_btn" id="J_car_again">
+				继续刷新成绩
+			</div>
+			<div class="car_alert_orabtn">
+				邀请好友帮忙
+			</div>
+			<a class="car_alert_lnk" href="#">查看汽车用品促销活动</a>
+		</div>
+	</div>
+	<!--E 挑战失败 -->
+</div>
+
+<script src="./js/easeljs-0.8.1.min.js"></script>
+<script src="./js/preloadjs-0.6.2.min.js"></script>
+<script src="./js/tweenjs-0.6.1.min.js"></script>
+<script src="index.js"></script>
+<script>
+	function init() {
+		//游戏页初始化
+		if (document.querySelector('#J_car_role_Rchose')) {
+			//随机选一个
+			document.querySelector('#J_car_role_Rchose').addEventListener('touchstart', function () {
+				var idx = parseInt(3 * Math.random()) + 1;
+				choseRole(idx);
+			});
+
+			//关闭选择框
+			var close = document.querySelector('#J_car_chos_close');
+			close.addEventListener('touchstart', function () {
+				document.querySelector('#J_car_chose_wrap').classList.add('hide');
+			})
+
+			var role = document.getElementById('J_car_role_chose');
+			role.addEventListener("click", function (e) {
+				var target = e.target;
+				if (target.className == "car_chose_role" || target.parentNode.className == "car_chose_role") {
+					choseRole(target.getAttribute("data-name") || target.parentNode.getAttribute("data-name"));
+				}
+			});
+		}
+	}
+	init();
+
+	// 选择角色
+	// 参数 1--刘备，2--关羽，3--张飞
+	function choseRole(idx) {
+		//静态资源
+		var manifest = [
+			{src: './images/car_eff_bomb@2x.png', id: 'effbomb'},
+			{src: './images/car_eff_quick@2x.png', id: 'effquick'},
+			{src: './images/car_eff_slow@2x.png', id: 'effslow'},
+			{src: './images/car_prop1_ice@2x.png', id: 'ice'},
+			{src: './images/car_prop1_stone@2x.png', id: 'stone'},
+			{src: './images/car_prop1_snag@2x.png', id: 'snag'},
+			{src: './images/car_prop1_roadb@2x.png', id: 'roadb'},
+			{src: './images/car_prop2_gas@2x.png', id: 'gas'},
+			{src: './images/car_prop2_nav@2x.png', id: 'nav'},
+			{src: './images/car_prop2_tyre@2x.png', id: 'tyre'},
+			{src: './images/car_prop3_bomb@2x.png', id: 'bomb'},
+			{src: './images/car_dialog@2x.png', id: 'dialog'}
+		];
+		if (idx == 1) {
+			//刘备
+			manifest.push({
+				src: './images/car_1@2x.png',
+				id: 'car'
+			}, {
+				src: './images/car_bg_1@2x.jpg',
+				id: 'bg1'
+			});
+		} else if (idx == 2) {
+			//关羽
+			manifest.push({
+				src: './images/car_2@2x.png',
+				id: 'car'
+			}, {
+				src: './images/car_bg_2@2x.jpg',
+				id: 'bg1'
+			});
+		} else if (idx == 3) {
+			//张飞
+			manifest.push({
+				src: './images/car_3@2x.png',
+				id: 'car'
+			}, {
+				src: './images/car_bg_1@2x.jpg',
+				id: 'bg1'
+			});
+		}
+
+		//关闭选择框
+		document.querySelector('#J_car_chose_wrap').classList.add('hide');
+
+		//总的倒计时时间， allTime  30
+		// 道具作用的里程数  propMill 300
+		// 默认加速值  fixM 20
+		var game = new CarGame(30, 300, 20);
+		game.init(manifest);
+
+		//时间结束
+		game.event.on('timeout', function () {
+			game.destroy();
+
+			console.log(game);
+		});
+
+		//游戏结束
+		game.event.on('gameover', function () {
+			//获取里程
+			var mile = game.getMil()
+
+			document.querySelector('#J_car_lose').classList.remove('hide');
+
+			//模拟重新开始的测试， 可以删除
+			document.querySelector('#J_car_again').addEventListener('click', function () {
+
+				console.log('重新开始游戏了')
+
+				document.querySelector('#J_car_lose').classList.add('hide');
+
+				game.reStart(manifest);
+
+				game.event.on('gameover', function () {
+					console.log(2222)
+					// 重新开始游戏 监听处理
+
+					var game = new CarGame(30, 300, 20);
+					game.init(manifest);
+				})
+			})
+		});
+		//销毁自定义事件
+//		game.event.removeEvent();
+	}
+</script>
+
+</body>
+</html>
