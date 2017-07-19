@@ -1,0 +1,10 @@
+{
+  "name": "canvas",
+  "version": "0.1.0",
+  "scripts": {},
+  "dependencies": {
+    "easy-router": "^2.0.10"
+  },
+  "author": "beidan",
+  "license": "MIT"
+}
